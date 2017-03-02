@@ -46,7 +46,16 @@ namespace Fickle.Generators.Objective.Binders
 
 				if (underlyingType.IsNumericType() || underlyingType == typeof(bool))
 				{
-					var typeToCompare = new FickleType("NSNumber");
+					Expression compareExpression;
+
+					if (underlyingType == typeof(decimal))
+					{
+						compareExpression = Expression.OrElse(Expression.TypeIs(value, new FickleType("NSNumber")), Expression.TypeIs(value, new FickleType("NSString")));
+					}
+					else
+					{
+						compareExpression = Expression.TypeIs(value, new FickleType("NSNumber"));
+					}
 
 					if (underlyingType.IsEnum && valueType.GetUnderlyingType() == null)
 					{
@@ -57,7 +66,7 @@ namespace Fickle.Generators.Objective.Binders
 						outputValue = Expression.Convert(value, valueType);
 					}
 
-					ifExpression = Expression.IfThen(Expression.TypeIs(value, typeToCompare), processOutputValue(outputValue).ToBlock());
+					ifExpression = Expression.IfThen(compareExpression, processOutputValue(outputValue).ToBlock());
 				}
 				else if (underlyingType.IsEnum)
 				{
